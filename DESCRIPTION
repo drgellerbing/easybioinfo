@@ -51,3 +51,5 @@ Suggests:
     jsonlite,
     lubridate,
     magrittr
+URL: https://github.com/drgellerbing/easybioinfo
+BugReports: https://github.com/drgellerbing/easybioinfo/issues
