@@ -9,3 +9,45 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Depends: 
+    R (>= 3.5)
+LazyData: true
+Imports: 
+    biomaRt,
+    broom,
+    cli,
+    data.table,
+    dplyr,
+    dtplyr,
+    forcats,
+    ggplot2,
+    maxstat,
+    modelr,
+    pillar,
+    purrr,
+    ragg,
+    readr,
+    readxl,
+    reprex,
+    rlang,
+    rstudioapi,
+    rvest,
+    stats,
+    stringr,
+    survival,
+    survminer,
+    tibble,
+    tidyr,
+    writexl,
+    xml2
+Suggests: 
+    conflicted,
+    dbplyr,
+    googledrive,
+    googlesheets4,
+    haven,
+    hms,
+    httr,
+    jsonlite,
+    lubridate,
+    magrittr
