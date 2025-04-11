@@ -1,6 +1,6 @@
 #' @import magrittr
 
-tidydata = function(){
+tidykmdata = function(){
   cat("Combining expression data with clinical data ....\n")
 
   md_success <- FALSE
@@ -337,4 +337,25 @@ tidydata = function(){
   }
   rownames(md) <- NULL
   return(md)
+}
+
+transformexpr <- function(expr){
+  print("Transformation Ongoing...")
+  suppressWarnings({
+    gene_col <- as.numeric(readline(prompt = "Please enter the column number of your gene id in your expression dataframe: "))
+    while(is.na(gene_col) == TRUE || gene_col > ncol(expr)){
+      message("Error detected, please try again :)")
+      gene_col <- as.numeric(readline(prompt = "Please enter the column number of your gene id in your expression dataframe: "))
+    }
+  })
+  colnames(expr)[gene_col] <- "geneid"
+  expr %<>% dplyr::relocate(geneid)
+  fun <- function(x){2^x}
+  expr[, -1] <- lapply(expr[, -1], fun)
+  pseudo <- as.numeric(readline(prompt = "Pseudocount value: "))
+  pseudofun <- function(x){as.integer(x-pseudo)}
+  expr[, -1] <- lapply(expr[, -1], pseudofun)
+  expr %<>% as.data.frame()
+  return(expr)
+  cat("Done :>")
 }

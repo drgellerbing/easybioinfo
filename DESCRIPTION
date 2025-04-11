@@ -17,6 +17,7 @@ Imports:
     broom,
     cli,
     data.table,
+    DESeq2,
     dplyr,
     dtplyr,
     forcats,
