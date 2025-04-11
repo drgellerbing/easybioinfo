@@ -1,17 +1,27 @@
 #' @import magrittr
 
-rundeseq <- function(expr, md){
-  expr %<>% as.data.frame()
+rundeseq <- function(expression, md){
+  expression %<>% as.data.frame()
+  View(expression)
   suppressWarnings({
     gene_col <- as.numeric(readline(prompt = "Please enter the column number of your gene id in your expression dataframe: "))
-    while(is.na(gene_col) == TRUE || gene_col > ncol(expr)){
+    while(is.na(gene_col) == TRUE || gene_col > ncol(expression)){
       message("Error detected, please try again :)")
       gene_col <- as.numeric(readline(prompt = "Please enter the column number of your gene id in your expression dataframe: "))
     }
   })
-  colnames(expr)[gene_col] <- "geneid"
-  expr %<>% dplyr::relocate(geneid)
-  expr[, -1] <- lapply(expr[, -1], as.integer)
+  colnames(expression)[gene_col] <- "geneid"
+
+  #Checking for duplicates
+  tryCatch({
+    rownames(expression) <- expression$geneid
+  }, error = function(e){
+    cat("Error: Duplicates found in your gene id. Please make sure there are no duplicates \n")
+    stop(e)
+  })
+
+  expression %<>% dplyr::relocate(geneid)
+  expression[, -1] <- lapply(expression[, -1], as.integer)
   View(md)
   suppressWarnings({
     sam_col <- as.numeric(readline(prompt = "Please enter the column number of your sample IDs in your metadata: "))
@@ -28,14 +38,13 @@ rundeseq <- function(expr, md){
   colnames(md)[sam_col] <- "sampid"
   colnames(md)[cdn_col] <- "cond"
   md$cond <- as.factor(md$cond)
-  expr %<>% dplyr::select(geneid, any_of(md$sampid))
-  dds = DESeq2::DESeqDataSetFromMatrix(countData = expr,
+  expression %<>% dplyr::select(geneid, any_of(md$sampid))
+  dds = DESeq2::DESeqDataSetFromMatrix(countData = expression,
                                colData = md,
                                design = ~cond, tidy = TRUE)
   ctrl <- readline(prompt = "Enter the control: ")
   dds$cond <- stats::relevel(dds$cond, ref = ctrl)
   n_groups <- as.numeric(readline(prompt = "Enter the number of experimental conditions excluding control: "))
-  p = as.numeric(readline(prompt = "Enter your desired adjusted p-value: "))
 
   prefil <- readline(prompt = "Do you want to pre-filter the count input? (yes/no): ")
   if (tolower(prefil) == "yes" || tolower(prefil) == "y"){
@@ -49,14 +58,14 @@ rundeseq <- function(expr, md){
 
     if (n_groups == 1){
       print(head(DESeq2::results(rundds), tidy = TRUE))
-      print(summary(DESeq2::results(rundds, alpha = p)))
+      print(DESeq2::summary(DESeq2::results(rundds, alpha = 0.05)))
       return(rundds)
     }
     else{
       nr <- as.numeric(DESeq2::resultsNames(rundds) %>% as.data.frame() %>% nrow())
       for (i in 2:nr){
         print(head(DESeq2::results(rundds, name = DESeq2::resultsNames(rundds)[i]), tidy = TRUE))
-        print(summary(DESeq2::results(rundds, name = DESeq2::resultsNames(rundds)[i], alpha = p)))
+        print(DESeq2::summary(DESeq2::results(rundds, name = DESeq2::resultsNames(rundds)[i], alpha = 0.05)))
       }
       return(rundds)
     }
