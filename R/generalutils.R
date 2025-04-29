@@ -1,7 +1,7 @@
 #' @import magrittr
 #' @import ggplot2
 
-##Function to grab gene list
+## General Function to grab gene list
 getgenes = function(){
   message("For your query genes, do you want to enter the gene names directly (d) or provide a dataframe/vector of character strings (v)?")
   input = readline(prompt = "Enter D or V (d/v): ")
@@ -10,9 +10,26 @@ getgenes = function(){
     input = readline(prompt = "Enter D or V (d/v): ")
   }
   if(tolower(input) == "d"){
-    message("Please enter your specific genes in the following format with spaces in between: Gene1, Gene2, Gene3 ")
-    genes <- readline(prompt = "Please enter a comma-separated list of gene names: ")
-    gts <- unlist(strsplit(genes, ", "))
+    input_success <- FALSE
+    while(input_success == FALSE){
+      message("Please enter your specific genes in the following format with spaces in between: Gene1, Gene2, Gene3 ")
+      genes <- readline(prompt = "Please enter a comma-separated list of gene names: ")
+
+      #TryCatch Loop
+      tryCatch({
+        genes <- gsub("\\s*,\\s*", ",", trimws(genes))
+        genes <- gsub(",", ", ", genes)
+
+        gts <- unlist(strsplit(genes, ", "))
+
+        if(any(is.na(genes))){stop("Error found in the input.")}
+
+        input_success <- TRUE
+      }, error = function(e){
+        input_success <- FALSE
+        message("Error detected. Please try again :) \n")
+      })
+    }
   }
   else if(tolower(input) == 'v'){
     message("Please provide a dataframe or a vector containing the gene names :)")
@@ -38,6 +55,54 @@ getgenes = function(){
   }
   gts <- unique(stats::na.omit(gts))
   return(gts)
+}
+
+## General Function to create directories
+createdir <- function(){
+  message("Please make sure the name of your created folder does not exists in your current directory")
+  success <- FALSE
+  while(!success){
+    dir_name <- readline(prompt = "Please enter the name for your newly created folder: ")
+    if(dir.exists(dir_name)){
+      message("Folder already exists. Please enter a different name :)")
+    } else{
+      dir.create(dir_name)
+      success <- TRUE
+    }
+  }
+  return(dir_name)
+}
+
+## General function to grab dataframes
+readdf <- function(){
+  df_success <- FALSE
+  while(!df_success){
+    n_df <- readline(prompt = "Please enter the name of the dataframe: ")
+    tryCatch({
+      df_yes <- get(n_df, envir = globalenv())
+      df_success <- TRUE
+    }, error = function(e){
+      message("Error: Please provide a valid dataframe")
+      df_success <- FALSE
+    })
+  }
+  return(df_yes)
+}
+
+## General Function to create directories
+createdir <- function(){
+  message("Please make sure the name of your created folder does not exists in your current directory")
+  success <- FALSE
+  while(!success){
+    dir_name <- readline(prompt = "Please enter the name for your newly created folder: ")
+    if(dir.exists(dir_name)){
+      message("Folder already exists. Please enter a different name :)")
+    } else{
+      dir.create(dir_name)
+      success <- TRUE
+    }
+  }
+  return(dir_name)
 }
 
 ##Reporting NA in survival dataframe
@@ -128,7 +193,8 @@ onegenecox = function(fsurv, gname, ogcdf){
   return(unicoxdataframe)
 }
 
-kmplot <- function(fsurv, kmplotdf, kmgname, kmylabel, kmltitle, kmlpos, kmmsize, kmlsize, kmpsize, kmaxsize, kmpxc, kmpyc, survpvalue, kmpvalue){
+## Function for Plotting Survival Curves
+kmplot <- function(fsurv, kmplotdf, kmgname, kmylabel = "Survival Probability", kmltitle = "Median Survival", survpvalue = NULL, kmpvalue = NULL, kmlpos = c(0.65, 0.9), kmmsize = 18, kmlsize = 16, kmpsize = 16, kmaxsize = 16, kmpxc = 0.45, kmpyc = 38){
   fit1 = survminer::surv_fit(fsurv, data = kmplotdf)
   slow = round(unname(summary(fit1)$table[,'median'][1]),0)
   shigh = round(unname(summary(fit1)$table[,'median'][2]),0)
@@ -149,13 +215,14 @@ kmplot <- function(fsurv, kmplotdf, kmgname, kmylabel, kmltitle, kmlpos, kmmsize
         ggplot2::theme(plot.subtitle = ggplot2::element_text(hjust = kmpxc, vjust = -(kmpyc), face = "bold", size = kmpsize))}
   }
 
-  if(survpvalue > kmpvalue){
+  if(survpvalue > kmpvalue || (is.null(survpvalue) && is.null(kmpvalue))){
     pvalue <- bquote(italic(p) == .(pval))
     custom_theme <- function() {
       survminer::theme_survminer() %+replace%
         ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5),legend.box = "vertical")+
         ggplot2::theme(plot.subtitle = ggplot2::element_text(hjust = kmpxc, vjust = -(kmpyc), size = kmpsize))}
   }
+
 
   graph = survminer::ggsurvplot(fit1, data=kmplotdf,
                                 break.time.by = 500,
@@ -169,4 +236,27 @@ kmplot <- function(fsurv, kmplotdf, kmgname, kmylabel, kmltitle, kmlpos, kmmsize
                                 font.x = c(kmaxsize, "bold"), font.y = c(kmaxsize, "bold"), font.tickslab = c(15)) + ggplot2::labs(subtitle = pvalue)
   print(graph)
   return(graph)
+}
+
+## Function to filter DESeq2 results
+filtersigres <- function(df, pval, lfcval){
+  results = df[which(df$padj < pval), ]
+  resup = results[results$log2FoldChange > lfcval, ]
+  resdown = results[results$log2FoldChange < -abs(lfcval), ]
+  sigresults = rbind(resup, resdown)
+  return(sigresults)
+}
+
+maplotfunc <- function(deseqres, pval = 0.05, limitvalue = 10, title = "MA Plot", plottitle = "./maplot.png"){
+  DESeq2::plotMA(deseqres, ylim = c(-limitvalue, limitvalue),
+                 xlab = "Mean of Normalised Counts",
+                 ylab = "Log2 Fold Change",
+                 main = title, alpha = pval)
+
+  grDevices::png(plottitle, res = 400, units = "in", width = 8, height = 6)
+  DESeq2::plotMA(deseqres, ylim = c(-limitvalue, limitvalue),
+                 xlab = "Mean of Normalised Counts",
+                 ylab = "Log2 Fold Change",
+                 main = title, alpha = pval)
+  grDevices::dev.off()
 }
