@@ -1,4 +1,21 @@
 #' @import magrittr
+#' @name multicox
+#' @title Multivariate Cox Proprotional Hazard Analysis
+#' @description
+#' Performs multivariate cox proportional hazard analysis for overall survival or progression-free survival through a series of prompts.
+#' The function will prompt you for a list of genes.
+#' Survival can be calculated based on four different cutoffs: median, z-scores, quartiles, custom quartiles or optimal.
+#' Optimal cutoffs are calculated by performing a test of independence of response using maximally selected rank statistics
+#' @param kmdf Ideally, dataframe produced from the tidykmdata function. Dataframe should contain "os"/"pfs" columns for OS/PFS values, "statusos"/"statuspfs" with "1 or 0" as events, as well as expression values for individual genes in each column.
+#' @returns A list containing the class coxph representing the fit, the full cox analysis result, the significant cox analysis result and the transformed input dataframe used for the analysis.
+#' Also produces a forest plot that is saved into a .png file. Forest plot can be further customised using plotforest function.
+#' @examples
+#' df <- easybioinfo::kmexpr
+#' md <- easybioinfo::kmclinical
+#' kmdf <- tidykmdata(df, md)
+#' unidf <- uniKM(kmdf)
+#' cox <- multicox(kmdf)
+#' 
 
 multicox = function(kmdf){
   cat("Executing Multivariate Cox Analysis ... \n")
@@ -268,6 +285,21 @@ multicox = function(kmdf){
   cat("Analysis Complete :> Hope you get something :> \n")
   return(list1)
 }
+
+#' @name plotforest
+#' @title Customise Forest Plot
+#' @description
+#' A helper function to allow to produce customised forest plots. 
+#' The title, font size, reference label, and the number of digits for estimates and p-values in the plot can all be customised.
+#' @param cox The list from the multicox function
+#' @returns A forest plot that can be saved into a .png file
+#' @examples
+#' df <- easybioinfo::kmexpr
+#' md <- easybioinfo::kmclinical
+#' kmdf <- tidykmdata(df, md)
+#' unidf <- uniKM(kmdf)
+#' cox <- multicox(kmdf)
+#' plotforest(cox)
 
 plotforest = function(cox){
   if(length(cox) == 4){

@@ -4,7 +4,7 @@
 \name{easybioinfo-package}
 \alias{easybioinfo}
 \alias{easybioinfo-package}
-\title{easybioinfo: What the Package Does (One Line, Title Case)}
+\title{easybioinfo: A Streamlined Package for Differential Expression & Survival Analysis}
 \description{
 What the package does (one paragraph).
 }

@@ -18,9 +18,9 @@ Produces a customised heatmap of transformed/normalised counts of genes of your 
 \examples{
 library(DESeq2)
 dds <- DESeq2::DESeq(exampledeseq)
-tdds <- vst(dds)
-tdds <- rlog(dds)
-tdds <- normTransform(dds, f = log2, pc = pcount)
+tdds <- DESeq2::vst(dds)
+tdds <- DESeq2::rlog(dds)
+tdds <- DESeq2::normTransform(dds, f = log2, pc = pcount)
 
 library(easybioinfo)
 dds <- easybioinfo::rundeseq(expressiondf, md)

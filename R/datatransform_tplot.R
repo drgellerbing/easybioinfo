@@ -1,5 +1,32 @@
 #' @import magrittr
 
+#' @name datatransform
+#' 
+#' @title Transforms and Normalises DESeq2 Counts for Downstream Analysis
+#' 
+#' @description
+#' Transforms your DESeq2 counts via:
+#' 1. Variance Stabilising Transformation
+#' 2. Regularised Log Transformation
+#' 3. Normalised Count Transformation
+#' 
+#' Please check the DESeq2 vignette for further details on the transformations: http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+#' 
+#' @param dds DESeqDataSet Input
+#'
+#' @returns A DESeqTransform object of transformed, normalised counts and saves them into excel files
+#'
+#' @examples
+#' expression = easybioinfo::deseqexpr
+#' md = easybioinfo::deseqmd
+#' 
+#' exampledeseq = DESeq2::DESeqDataSetFromMatrix(countData = expression, colData = md, design = ~condition, tidy = TRUE)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expressiondf, md)
+#' datatransform(dds)
+
 datatransform <- function(dds){
   cs_dds <- class(dds) == "DESeqDataSet"
   if(cs_dds != "TRUE"){
@@ -67,6 +94,30 @@ datatransform <- function(dds){
   return(tdds)
 }
 
+#' @name pcaplot
+#' 
+#' @title PCA Plotting Function
+#' @description
+#' Produces a PCA plot based on your DESeqTransform dataset. Plot parameters can be tweaked specifically by the user
+#' 
+#' 
+#' @param tdds DESeqTransform Input
+#'
+#' @returns A customised PCA plot which is saved into a .png file
+#'
+#' @examples
+#' library(DESeq2)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' tdds <- vst(dds)
+#' tdds <- rlog(dds)
+#' tdds <- normTransform(dds, f = log2, pc = pcount)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expressiondf, md)
+#' tdds <- easybioinfo::datatransform(dds)
+#' 
+#' pcaplot(dds)
+
 pcaplot <- function(tdds){
   t <- readline(prompt = "Please provide the title of the plot: ")
   defpar <- readline(prompt = "Do you want to use the default parameters? (yes/no): ")
@@ -125,6 +176,26 @@ distheatmapplot <- function(tdds){
                               col=colors)
   print(graph)
 }
+
+#' @name countheatmapplot
+#' @title Count Heatmap Plot of Specific Genes
+#' @description
+#' Produces a customised heatmap of transformed/normalised counts of genes of your choosing through a series of prompts
+#' 
+#' @param tdds DESeqTransform Input
+#' @returns A customised count heatmap plot which is saved into a .png file
+#' @examples
+#' library(DESeq2)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' tdds <- DESeq2::vst(dds)
+#' tdds <- DESeq2::rlog(dds)
+#' tdds <- DESeq2::normTransform(dds, f = log2, pc = pcount)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expressiondf, md)
+#' tdds <- easybioinfo::datatransform(dds)
+#' 
+#' countheatmapplot(dds)
 
 countheatmapplot <- function(tdds){
   message("The heatmap will be saved as countheatmap.png in your working directory :>")

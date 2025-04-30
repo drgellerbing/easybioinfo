@@ -1,9 +1,74 @@
 #' @import magrittr
 
-tidykmdata = function(clinicaldataframe, expressiondataframe){
+#' @name tidykmdata
+#' @title Data Wrangling for Downstream Survival Analysis
+#' @description
+#' A prompt-based function that produces a dataframe containing the overall survival or progression-free survival information for downstream survival analysis.
+#' The function will prompt you for a list of genes and wrangle your expression dataframes and clinical data into one final dataframe.
+#' 
+#' @param expressiondataframe Dataframe containing expression values. The dataframe should have individual genes in each row and individual samples in each column.
+#' @param clinicaldataframe Dataframe containing clinical data. The clinical data should contain the samples, overall survival/progression-free survival values, as well as the events for either the overall survival/progression-free survival.
+#' @returns A dataframe containing information for the samples, the survival information and the expression of your query genes for downstream survival analysis using uniKM or multicox functions
+#' @examples
+#' df <- easybioinfo::kmexpr
+#' md <- easybioinfo::kmclinical
+#' 
+#' kmdf <- tidykmdata(df, md)
+
+tidykmdata = function(expressiondataframe, clinicaldataframe){
   cat("Combining expression data with clinical data ....\n")
+  
+  ## Repeating functions
+  convertmonths = function(mdm){
+    fd = function(x){x*30}
+    days <- as.data.frame(sapply(as.double(mdm), fd))
+    return(days)
+  }
+  
+  ##Reporting NA in survival dataframe
+  reportingna_surv = function(md, mdcol){
+    mdna <- md[is.na(md[, mdcol]), ]
+    if(length(mdna$id) > 0){
+      for(poi in 1:length(mdna$id)){
+        cat("NA values found in", mdna$id[poi], "\n")
+      }
+    }
+    md <- md[!(is.na(md[, mdcol])), ]
+    return(md)
+  }
+  
+  ##Function to segregate patients based on desired OS events
+  choosingevent = function(md, qcol, surv_type){
+    if(any(is.na(md[, qcol])) == TRUE){
+      vsna <- md$id[is.na(md[, qcol])]
+      for(nai in 1:length(vsna)){
+        cat(vsna[nai], "contains NA value\n")
+      }
+    }
+    md <- md[!(is.na(md[, qcol])), ]
+    
+    vsvector <- unique(md[,qcol])
+    message("Here are the events in the provided clinical/metadata:")
+    for(vsvi in 1:length(vsvector)){
+      cat(vsvi, ": ", vsvector[vsvi], "\n", sep = "")
+    }
+    vsp <- as.numeric(readline(prompt = "Please provide the number of your desired event: "))
+    vs <- vsvector[vsp]
+    if(surv_type == "os"){name = "statusos"}
+    if(surv_type == "pfs"){name = "statuspfs"}
+    
+    md %>%
+      dplyr::mutate("{name}" := as.numeric(
+        ifelse(
+          md[, qcol] == vs,
+          '1',
+          '0'
+        ))) %>% as.data.frame() -> md
+    return(md)
+  }
 
   clinicaldataframe <- as.data.frame(clinicaldataframe)
+  expressiondataframe <- as.data.frame(expressiondataframe)
 
   View(clinicaldataframe)
 
@@ -65,7 +130,7 @@ tidykmdata = function(clinicaldataframe, expressiondataframe){
     })
     colnames(clinicaldataframe)[q] <- "vitalos"
 
-    clinicaldataframe <- choosingeventos(clinicaldataframe, q)
+    clinicaldataframe <- choosingevent(clinicaldataframe, q, surv_type)
 
     clinicaldataframe %<>% dplyr::select(id, os, vitalos, statusos)
   }
@@ -108,7 +173,7 @@ tidykmdata = function(clinicaldataframe, expressiondataframe){
       }
     })
     colnames(clinicaldataframe)[q] <- "vitalpfs"
-    clinicaldataframe <- choosingeventpfs(clinicaldataframe, q)
+    clinicaldataframe <- choosingevent(clinicaldataframe, q, surv_type)
 
     clinicaldataframe %<>% dplyr::select(id, os, vitalpfs, statuspfs)
   }
@@ -152,7 +217,7 @@ tidykmdata = function(clinicaldataframe, expressiondataframe){
       }
     })
     colnames(clinicaldataframe)[q] <- "vitalos"
-    clinicaldataframe <- choosingeventos(clinicaldataframe, q)
+    clinicaldataframe <- choosingevent(clinicaldataframe, q, "os")
 
     suppressWarnings({
       pfs_col <- as.numeric(readline(prompt = "Please provide the column number of the progression free survival in your survival/clinical dataframe: "))
@@ -191,16 +256,13 @@ tidykmdata = function(clinicaldataframe, expressiondataframe){
       }
     })
     colnames(clinicaldataframe)[w] <- "vitalpfs"
-    clinicaldataframe <- choosingeventpfs(clinicaldataframe, w)
+    clinicaldataframe <- choosingevent(clinicaldataframe, w, "pfs")
 
     clinicaldataframe %<>% dplyr::select(id, os, vitalos, statusos, pfs, vitalpfs, statuspfs)
   }
 
   if(all(clinicaldataframe$os != 'NA')) {cat("Data is clean \n")}
 
-  message("Please provide the expression dataframe :)")
-
-  expressiondataframe <- as.data.frame(expressiondataframe)
   gts <- getgenes()
 
   View(expressiondataframe)
@@ -316,6 +378,17 @@ tidykmdata = function(clinicaldataframe, expressiondataframe){
   rownames(clinicaldataframe) <- NULL
   return(clinicaldataframe)
 }
+
+#' @name transformexpr
+#' @title Transforms RNA-Seq Expression into Raw Counts
+#' @description
+#' A function to convert log2 transformed RNA-Seq counts into raw counts for downstream DESeq2 differential expression analysis.
+#' This function will also account for any psudocounts based on your input prompt.
+#' @param expr An expression dataframe containing RNA-Seq log2 transformed counts
+#' @returns A dataframe with transformed raw counts for downstream DESeq2 differential expression analysis.
+#' @examples
+#' df <- transformexpr(expr)
+#' 
 
 transformexpr <- function(expr){
   print("Transformation Ongoing...")

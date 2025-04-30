@@ -1,4 +1,15 @@
 #' @import magrittr
+#' @title Differential Expression Analysis Based on the Gamma-Poisson Distribution
+#' @description
+#' A streamlined pipeline that performs differential expression analysis through a series of prompts using the "DESeq2" package.
+#' Produces DESeqDataSet with DESeq2::DESeqDataSetFromMatrix, establishes the control through your prompts, and runs the differential expression analysis using DESeq2::DESeq
+#' @param expression Gene expression dataframe
+#' @param md Clinical data dataframe
+#' @returns a DESeqDataSet object with results stored as metadata columns. These results can be accessed by calling results function from "DESeq2" or from the getresults function
+#' @examples
+#' df <- easybioinfo::deseqexpr
+#' md <- easybioinfo::deseqmd
+#' dds <- rundeseq(df, md)
 
 rundeseq <- function(expression, md){
   expression %<>% as.data.frame()

@@ -1,3 +1,15 @@
+#' @name genes2hgnc
+#' @title Converts Gene Identifiers to HGNC Symbols
+#' @description
+#' Using this function, you can easily convert different gene identifiers from your expression dataframe into official HGNC symbols. Conversion is done using the 'biomaRt' package.
+#' 
+#' @param expr Your expression dataframe
+#' @param srcType Gene Identifier required by biomaRt. Defaults to "ensembl_gene_id". Can be changed in the function through user prompts
+#' @returns A dataframe with converted gene identifiers
+#' @examples
+#' df <- easybioinfo::kmexpr
+#' df <- genes2hgnc(df) 
+
 genes2hgnc <- function(expr, srcType = "ensembl_gene_id" )
 {
   message("Please note that unmapped IDs are left as it is")
@@ -7,7 +19,7 @@ genes2hgnc <- function(expr, srcType = "ensembl_gene_id" )
   expr_ncol <- as.numeric(readline(prompt = "Please enter the column number of the gene IDs: "))
 
 
-  #Loop to connect to Ensembl's daatabase
+  #Loop to connect to Ensembl's database
   max_attempts <- 5
   attempt <- 1
   base_wait <- 2  # Initial wait time (seconds)
@@ -81,6 +93,26 @@ genes2hgnc <- function(expr, srcType = "ensembl_gene_id" )
   return(expr)
 }
 
+#' @name ddsgenes2hgnc
+#' @title Gene Conversion of DESeq2 Results
+#' @description
+#' Converts your DESeq2 result into official HGNC symbols
+#' Conversion is done using the 'biomaRt' package.
+#' @param dds A DESeqDataSet input
+#' @param srcType Gene Identifier required by biomaRt. Defaults to "ensembl_gene_id". Can be changed in the function through user prompts
+#' @returns A DESeqDataSet with gene symbols converted into official HGNC symbols
+#' @examples
+#' library(DESeq2)
+#' expression = easybioinfo::deseqexpr
+#' md = easybioinfo::deseqmd
+#' 
+#' exampledeseq = DESeq2::DESeqDataSetFromMatrix(countData = expression, colData = md, design = ~condition, tidy = TRUE)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expressiondf, md)
+#' ddsgenestohgnc(dds)
+
 ddsgenestohgnc <- function(dds, srcType = "ensembl_gene_id"){
   cs_dds <- class(dds) == "DESeqDataSet"
   if(cs_dds != "TRUE"){
@@ -114,7 +146,7 @@ ddsgenestohgnc <- function(dds, srcType = "ensembl_gene_id"){
   ##Determining the correct ID to map
   src <- readline(prompt = "Are the gene names provided in the expression data Ensembl Gene IDs? (yes/no): ")
   if(tolower(src) == "yes" || tolower(src) == "y"){
-    expr[,expr_ncol] <- gsub("\\.\\d+$", "", expr[[expr_ncol]])
+    rownames(dds) <- gsub("\\.\\d+$", "", rownames(dds))
     srcType = "ensembl_gene_id"
   }
 

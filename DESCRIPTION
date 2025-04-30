@@ -1,5 +1,5 @@
 Package: easybioinfo
-Title: What the Package Does (One Line, Title Case)
+Title: A Streamlined Package for Differential Expression & Survival Analysis
 Version: 0.0.0.9000
 Authors@R: 
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
@@ -14,33 +14,30 @@ Depends:
 LazyData: true
 Imports: 
     biomaRt,
-    broom,
-    cli,
     data.table,
     DESeq2,
     dplyr,
-    dtplyr,
+    EnhancedVolcano,
     forcats,
+    ggbeeswarm,
     ggplot2,
+    ggpubr,
+    magrittr,
+    MatrixGenerics,
     maxstat,
-    modelr,
-    pillar,
-    purrr,
-    ragg,
-    readr,
-    readxl,
-    reprex,
+    openxlsx,
+    pheatmap,
+    RColorBrewer,
     rlang,
     rstudioapi,
-    rvest,
     stats,
     stringr,
+    SummarizedExperiment,
     survival,
     survminer,
     tibble,
     tidyr,
-    writexl,
-    xml2
+    writexl
 Suggests: 
     conflicted,
     dbplyr,
@@ -51,6 +48,17 @@ Suggests:
     httr,
     jsonlite,
     lubridate,
-    magrittr
+    broom,
+    cli,
+    ragg,
+    reprex,
+    rvest,
+    xml2,
+    modelr,
+    readr,
+    readxl,
+    purrr,
+    pillar,
+    dtplyr
 URL: https://github.com/drgellerbing/easybioinfo
 BugReports: https://github.com/drgellerbing/easybioinfo/issues

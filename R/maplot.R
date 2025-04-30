@@ -1,3 +1,27 @@
+#' @name maplot
+#' @title Customised MA-Plot 
+#' @description
+#' A function to produce customised scatter plot of log2 fold changes (on the y-axis) versus the mean of normalised counts (on the x-axis)
+#' @param result Either a DESeqResults object or the list produced from the getresults/shrinklfc function
+#' @returns A MA plot that can be saved into .png files
+#' @examples
+#' expression = easybioinfo::deseqexpr
+#' md = easybioinfo::deseqmd
+#' 
+#' exampledeseq = DESeq2::DESeqDataSetFromMatrix(countData = expression, colData = md, design = ~condition, tidy = TRUE)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' result <- DESeq2::results(dds)
+#' maplot(result)
+#' 
+#' df <- easybioinfo::deseqexpr
+#' md <- easybioinfo::deseqmd
+#' dds <- rundeseq(df, md)
+#' result <- getresults(dds)
+#' maplot(result)
+#' 
+#' lfc <- shrinklfc(dds)
+#' maplot(lfc)
+#' 
 maplot <- function(result){
   if(!inherits(result, c("DESeqResults", "list"))){
     message("Please provide the DESeqResults from the getresults/shrinklfc function")

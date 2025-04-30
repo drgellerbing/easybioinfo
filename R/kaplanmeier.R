@@ -1,4 +1,22 @@
 #' @import magrittr
+#' 
+#' @name uniKM
+#' @title Kaplan-Meier Survival Plots
+#' @description
+#' A function that produces customised survival plots based on a series of prompts. Able to produce overall survival (OS) plots or progression-free survival (PFS) plots.
+#' The function will prompt you for a list of genes.
+#' This function also provides the option to plot Schoenfield plots that checks for the proportional hazard assumption. 
+#' Survival can be calculated based on four different cutoffs: median, z-scores, quartiles, custom quartiles or optimal.
+#' Optimal cutoffs are calculated by performing a test of independence of response using maximally selected rank statistics
+#' @param kmdf Ideally, dataframe produced from the tidykmdata function. Dataframe should contain "os"/"pfs" columns for OS/PFS values, "statusos"/"statuspfs" with "1 or 0" as events, as well as expression values for individual genes in each column.
+#' @returns A list containing the complete dataframe with survivals calculated using Cox-Proportional Hazard, a dataframe with only significant results, and the transformed dataframe.
+#' Also produces customised individual Kaplan Meier plots that can be saved into .png files.
+#' The Kaplan-Meier plots can be further customised using the customisesurvplot function
+#' @examples
+#' df <- easybioinfo::kmexpr
+#' md <- easybioinfo::kmclinical
+#' kmdf <- tidykmdata(df, md)
+#' unidf <- uniKM(kmdf)
 
 ##uniKM Function
 uniKM = function(kmdf){
@@ -381,8 +399,23 @@ uniKM = function(kmdf){
   return(list1)
 }
 
+#' @name customisesurvplot
+#' @title Customise Your Kaplan-Meier Survival Plot 
+#' @description
+#' Customise your survival plots based on a series of prompts. Able to customise the font size of the legends, p-values, axis titles, and the title
+#' Also able to customise the position of the p-value and legend
+#' @param unidf A list that is produced from the uniKM function
+#' @returns Customised Kaplan-Meier survival plots that are saved into .png files
+#' @examples
+#' df <- easybioinfo::kmexpr
+#' md <- easybioinfo::kmclinical
+#' kmdf <- tidykmdata(df, md)
+#' unidf <- uniKM(kmdf)
+#' customisesurvivalplot(unidf)
+#' 
+
 ##Customisable Survival Curve Function
-customisesurvivalplot = function(unidf){
+customisesurvplot = function(unidf){
   if(length(unidf) == 3){
     kmdf <- unidf[[3]]
     if(all(c("os", "statusos") %in% colnames(kmdf))){plot_type == "osc"}

@@ -1,3 +1,32 @@
+#' @name volcanoplot
+#' @title Customised Volcano Plots
+#' @description
+#' A function to produce a customised volcano plots. The volcano plot will be plotted based on your desired p-value and LFC prompts
+#' Able to label specific genes on the plot if desired, otherwise, the function will default to labelling all the genes.
+#' Parameters such as the point size, label size, and the axis limits can be customised.
+#' @param result Either a DESeqResults object or the list produced from the getresults/shrinklfc function
+#' @returns Volcano plots of your DESeq2 results that are saved in individual .png files
+#'
+#' @examples
+#' expression = easybioinfo::deseqexpr
+#' md = easybioinfo::deseqmd
+#' 
+#' exampledeseq = DESeq2::DESeqDataSetFromMatrix(countData = expression, colData = md, design = ~condition, tidy = TRUE)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' result <- DESeq2::results(dds)
+#' volcanoplot(result)
+#' 
+#' lfc <- DESeq2::lfcShrink(dds, coef = 2, type = "apeglm", alpha = 0.05)
+#' volcanoplot(lfc)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expression, md)
+#' results <- getresults(dds)
+#' volcanoplot(results)
+#' 
+#' lfc <- shrinklfc(dds)
+#' volcanoplot(lfc)
+
 volcanoplot <- function(result){
   message("Volcano Plots will be saved in your working directory :>")
   ##Checking provided result
@@ -45,6 +74,7 @@ volcanoplot <- function(result){
         ls <- as.numeric(readline(prompt = "Please enter the value for the label size. Default = 3.5: "))
       }
     })
+    
     suppressWarnings({
       lim <- as.numeric(readline(prompt = "Please enter the value for the x-axis limit. Default = 10: "))
       while(is.numeric(lim) == FALSE){
@@ -120,20 +150,7 @@ volcanoplot <- function(result){
       if(tolower(slab) == "yes" && tolower(slab2) == "yes"){slabel = getgenes()}
 
       res <- as.data.frame(result[[i]][[2]])
-      plot <- EnhancedVolcano::EnhancedVolcano(res,
-                             lab = res$genes,
-                             selectLab = slabel,
-                             x = 'log2FoldChange',
-                             y = 'padj',
-                             title = title1,
-                             pCutoff = p,
-                             FCcutoff = lfc,
-                             pointSize = ps,
-                             labSize = ls,
-                             subtitle = NULL,
-                             xlim = c(lim,-lim),
-                             legendLabels = c('Insignificant', paste("|LFC| >", lfc, sep = " "), paste("padj <", p, sep = " "), paste("padj <", p, "& |LFC| >", lfc, sep = " "))
-      )
+      plot <- volcplotfunc(res, alllabel, p, lfc, slabel, title1, ps, ls, lim)
       print(plot)
       ggsave(paste0(title1, "_volcanoplot.png", sep = ""), width = 8, height = 8, dpi = 500)
     }
@@ -161,20 +178,7 @@ volcanoplot <- function(result){
     if(tolower(slab) == "no" || tolower(slab) == "n"){slabel = NULL}
     if(tolower(slab) == "yes" || tolower(slab) == "y"){slabel <- getgenes()}
 
-    plot <- EnhancedVolcano::EnhancedVolcano(res,
-                           lab = alllabel,
-                           selectLab = slabel,
-                           x = 'log2FoldChange',
-                           y = 'padj',
-                           title = title1,
-                           pCutoff = p,
-                           FCcutoff = lfc,
-                           pointSize = ps,
-                           labSize = ls,
-                           subtitle = NULL,
-                           xlim = c(lim,-(lim)),
-                           legendLabels = c('Insignificant', paste("|LFC| >", lfc, sep = " "), paste("padj <", p, sep = " "), paste("padj <", p, "& |LFC| >", lfc, sep = " "))
-    )
+    plot <- volcplotfunc(res, alllabel, p, lfc, slabel, title1, ps, ls, lim)
     print(plot)
     ggsave(paste0(title1, "_volcanoplot.png", sep = ""), width = 8, height = 8, dpi = 500)
   }

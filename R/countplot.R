@@ -1,3 +1,24 @@
+#' @title Normalised Count Plots for a Single Gene
+#' 
+#' @description
+#' Produces count plots of your DESeq2 results
+#' 
+#'
+#' @param dds DESeqDataSet Input
+#'
+#' @returns Count plots of your DESeq2 results in individual .png files
+#'
+#' @examples
+#' expression = easybioinfo::deseqexpr
+#' md = easybioinfo::deseqmd
+#' 
+#' exampledeseq = DESeq2::DESeqDataSetFromMatrix(countData = expression, colData = md, design = ~condition, tidy = TRUE)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expression, md)
+#' countplot(dds)
+
 countplot <- function(dds){
   cs_dds <- class(dds) == "DESeqDataSet"
   if(cs_dds != "TRUE"){

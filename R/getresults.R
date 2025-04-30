@@ -1,3 +1,20 @@
+#' @title DESeq2 Results Processing
+#' @description
+#' Processes all your DESeq2 results through a series of prompts. Filters significant results according to your desired p-value and log2 fold change and saves the results into excel files.
+#' @param deseq_dds A DESeqDataSet input
+#' @returns A list containing the DESeqResults, the full results and the significant results. Full results and significant results can be saved into excel files
+#' @examples
+#' library(DESeq2)
+#' expression = easybioinfo::deseqexpr
+#' md = easybioinfo::deseqmd
+#' 
+#' exampledeseq = DESeq2::DESeqDataSetFromMatrix(countData = expression, colData = md, design = ~condition, tidy = TRUE)
+#' dds <- DESeq2::DESeq(exampledeseq)
+#' 
+#' library(easybioinfo)
+#' dds <- easybioinfo::rundeseq(expressiondf, md)
+#' getresults(dds)
+
 getresults <- function(deseq_dds){
   cs_dds <- class(deseq_dds) == "DESeqDataSet"
   if(cs_dds != "TRUE"){
@@ -6,13 +23,10 @@ getresults <- function(deseq_dds){
   }
 
   ## Function for naming lists for DESeq results
-  namelist <- function(x, deseq_dds){
-    names(x) <- c(DESeq2::resultsNames(deseq_dds)[-1])
-    names(x) <- sub("^[^_]*_", "", names(x))
-    names(x) <- gsub("_", " ", names(x))
-    names(x) <- gsub("\\.", " ", names(x))
-    return(x)
-  }
+  ddsnl <- c(DESeq2::resultsNames(deseq_dds)[-1])
+  ddsnl <- sub("^[^_]*_", "", ddsnl)
+  ddsnl <- gsub("_", " ", ddsnl)
+  ddsnl <- gsub("\\.", " ", ddsnl)
 
   message("This function will produce the significant results in excel files based on your provided cutoffs")
   nr <- as.numeric(length(DESeq2::resultsNames(deseq_dds)))
@@ -25,7 +39,7 @@ getresults <- function(deseq_dds){
     l1 <- vector("list", length = x)
     for(i in 1:x){
       ddsn <- i + 1
-      cat("Now processing", DESeq2::resultsNames(deseq_dds)[ddsn], "\n")
+      cat("Now processing", ddsnl[i], "\n")
       res = DESeq2::results(deseq_dds, name = DESeq2::resultsNames(deseq_dds)[ddsn], alpha = p)
       res %>% as.data.frame() -> resdf
       resdf$genes <- rownames(resdf)
@@ -33,7 +47,7 @@ getresults <- function(deseq_dds){
       l1[[i]] <- list(res, resdf, sigresults)
       names(l1[[i]]) <- c("deseqres", "fullres", "sigres")
     }
-    l1 <- namelist(l1, deseq_dds)
+    names(l1) <- ddsnl
 
     message("DESeq2 provides the function to compare the log fold change among the groups other than the control")
     com_res = readline(prompt = "Do you want the result comparisons among the query groups other than the control? (yes/no): ")
@@ -41,7 +55,7 @@ getresults <- function(deseq_dds){
       det_res = readline(prompt = "Among all your experimental control other than the control, do you want to compare all of them? (yes/no): ")
 
       if(det_res == "yes" || det_res == "y"){
-        cdn <- as.character(unique(deseq_dds[[2]]))
+        cdn <- as.factor(unique(deseq_dds[[2]]))
         cat("The following are your provided experimental conditions: \n")
         for(cdni in 1:length(cdn)){
           cat(cdni, ": ", paste(cdn[cdni]), "\n", sep = "")
@@ -152,7 +166,7 @@ getresults <- function(deseq_dds){
     writexl::write_xlsx(sigresults, name2)
     l1[[1]] <- list(res, resdf, sigresults)
     names(l1[[1]]) <- c("deseqres", "fullres", "sigres")
-    l1 <- namelist(l1, deseq_dds)
+    names(l1) <- ddsnl
 
     return(l1)
   }

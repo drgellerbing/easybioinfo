@@ -73,22 +73,6 @@ createdir <- function(){
   return(dir_name)
 }
 
-## General function to grab dataframes
-readdf <- function(){
-  df_success <- FALSE
-  while(!df_success){
-    n_df <- readline(prompt = "Please enter the name of the dataframe: ")
-    tryCatch({
-      df_yes <- get(n_df, envir = globalenv())
-      df_success <- TRUE
-    }, error = function(e){
-      message("Error: Please provide a valid dataframe")
-      df_success <- FALSE
-    })
-  }
-  return(df_yes)
-}
-
 ## General Function to create directories
 createdir <- function(){
   message("Please make sure the name of your created folder does not exists in your current directory")
@@ -104,84 +88,9 @@ createdir <- function(){
   }
   return(dir_name)
 }
-
-##Reporting NA in survival dataframe
-reportingna_surv = function(md, mdcol){
-  mdna <- md[is.na(md[, mdcol]), ]
-  if(length(mdna$id) > 0){
-    for(poi in 1:length(mdna$id)){
-      cat("NA values found in", mdna$id[poi], "\n")
-    }
-  }
-  md <- md[!(is.na(md[, mdcol])), ]
-  return(md)
-}
-
-convertmonths = function(mdm){
-  fd = function(x){x*30}
-  days <- as.data.frame(sapply(as.double(mdm), fd))
-  return(days)
-}
-
-##Function to segregate patients based on desired OS events
-choosingeventos = function(md, qcol){
-  if(any(is.na(md[, qcol])) == TRUE){
-    vsna <- md$id[is.na(md[, qcol])]
-    for(nai in 1:length(vsna)){
-      cat(vsna[nai], "contains NA value\n")
-    }
-  }
-  md <- md[!(is.na(md[, qcol])), ]
-
-  vsvector <- unique(md[,qcol])
-  message("Here are the events in the provided clinical/metadata:")
-  for(vsvi in 1:length(vsvector)){
-    cat(vsvi, ": ", vsvector[vsvi], "\n", sep = "")
-  }
-  vsp <- as.numeric(readline(prompt = "Please provide the number of your desired event: "))
-  vs <- vsvector[vsp]
-
-  md %>%
-    dplyr::mutate(statusos = as.numeric(
-      ifelse(
-        md[, qcol] == vs,
-        '1',
-        '0'
-      ))) %>% as.data.frame() -> md
-  return(md)
-}
-
-##Function to segregate patients based on desired PFS events
-choosingeventpfs = function(md, qcol){
-  if(any(is.na(md[, qcol])) == TRUE){
-    vsna <- md$id[is.na(md[, qcol])]
-    for(nai in 1:length(vsna)){
-      cat(vsna[nai], "contains NA value\n")
-    }
-  }
-  md <- md[!(is.na(md[, qcol])), ]
-
-  vsvector <- unique(md[,qcol])
-  message("Here are the events in the provided clinical/metadata:")
-  for(vsvi in 1:length(vsvector)){
-    cat(vsvi, ": ", vsvector[vsvi], "\n", sep = "")
-  }
-  vsp <- as.numeric(readline(prompt = "Please provide the number of your desired event: "))
-  vs <- vsvector[vsp]
-
-  md %>%
-    dplyr::mutate(statuspfs = as.numeric(
-      ifelse(
-        md[, qcol] == vs,
-        '1',
-        '0'
-      ))) %>% as.data.frame() -> md
-  return(md)
-}
-
-## Function for Univariate Cox
-onegenecox = function(fsurv, gname, ogcdf){
-  unicox <- survival::coxph(fsurv, data = ogcdf)
+ 
+onegenecox = function(fsurv, gname, kmdf){
+  unicox <- survival::coxph(fsurv, data = kmdf)
   ucoef = summary(unicox)$coef[1,1]
   uhaz = summary(unicox)$coef[1,2]
   upvalue = summary(unicox)$coef[1,5]
@@ -259,4 +168,22 @@ maplotfunc <- function(deseqres, pval = 0.05, limitvalue = 10, title = "MA Plot"
                  ylab = "Log2 Fold Change",
                  main = title, alpha = pval)
   grDevices::dev.off()
+}
+
+volcplotfunc <- function(res, alllabel, pvalue = 0.05, lfc = 1, slabel = NULL, title = "Volcano Plot", ps = 2.5, ls = 3, lim = 10){
+  EnhancedVolcano::EnhancedVolcano(res,
+                                   lab = alllabel,
+                                   selectLab = slabel,
+                                   x = 'log2FoldChange',
+                                   y = 'padj',
+                                   title = title,
+                                   pCutoff = pvalue,
+                                   FCcutoff = lfc,
+                                   pointSize = ps,
+                                   labSize = ls,
+                                   subtitle = NULL,
+                                   xlim = c(lim,-(lim)),
+                                   xlab = bquote(~Log[2] ~ "Fold Change"),
+                                   legendLabels = c('Insignificant', paste("|LFC| >", lfc, sep = " "), paste("padj <", pvalue, sep = " "), paste("padj <", pvalue, "& |LFC| >", lfc, sep = " "))
+  )
 }
