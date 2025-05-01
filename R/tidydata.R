@@ -384,13 +384,13 @@ tidykmdata = function(expressiondataframe, clinicaldataframe){
 #' @description
 #' A function to convert log2 transformed RNA-Seq counts into raw counts for downstream DESeq2 differential expression analysis.
 #' This function will also account for any psudocounts based on your input prompt.
-#' @param expr An expression dataframe containing RNA-Seq log2 transformed counts
+#' @param exprdf An expression dataframe containing RNA-Seq log2 transformed counts
 #' @returns A dataframe with transformed raw counts for downstream DESeq2 differential expression analysis.
 #' @examples
 #' df <- transformexpr(expr)
 #' 
 
-transformexpr <- function(expr){
+transformexpr <- function(exprdf){
   print("Transformation Ongoing...")
   suppressWarnings({
     gene_col <- as.numeric(readline(prompt = "Please enter the column number of your gene id in your expression dataframe: "))
@@ -399,14 +399,110 @@ transformexpr <- function(expr){
       gene_col <- as.numeric(readline(prompt = "Please enter the column number of your gene id in your expression dataframe: "))
     }
   })
-  colnames(expr)[gene_col] <- "geneid"
-  expr %<>% dplyr::relocate(geneid)
+  colnames(exprdf)[gene_col] <- "geneid"
+  exprdf %<>% dplyr::relocate(geneid)
   fun <- function(x){2^x}
-  expr[, -1] <- lapply(expr[, -1], fun)
+  exprdf[, -1] <- lapply(exprdf[, -1], fun)
   pseudo <- as.numeric(readline(prompt = "Pseudocount value: "))
   pseudofun <- function(x){as.integer(x-pseudo)}
-  expr[, -1] <- lapply(expr[, -1], pseudofun)
-  expr %<>% as.data.frame()
-  return(expr)
+  exprdf[, -1] <- lapply(exprdf[, -1], pseudofun)
+  exprdf %<>% as.data.frame()
+  return(exprdf)
   cat("Done :>")
+}
+
+#' @name tidyddsmd
+#' @title Preparing Large Metadatas for Differential Expression Analysis
+#' @description
+#' This function creates a metadata table required for the differential expression analysis.
+#' This function runs on the basis of common identifiers that R can search for for each experimental condition.
+#' @param exprdf An expression dataframe containing RNA-Seq counts
+#' @returns A metadata dataframe for downstream DESeq2 differential expression analysis
+#' @examples
+#' example_df <- data.frame(id = c("TSPAN6", "TNMD", "DPM1", "SCYL3"),
+#'                          c1 = c(479, 326, 792, 502),
+#'                          c2 = c(325, 12, 1148, 651),
+#'                          c3 = c(286, 10, 748, 233),
+#'                          c4 = c(422, 4, 614, 336),
+#'                          c5 = c(327, 12, 536, 383),
+#'                          c6 = c(123, 42, 452, 21))
+#' colnames(example_df)[2:ncol(example_df)] <- c("GTEX-WZTO", "GTEX-PVOW", "TCGA-13NYS", "TCGA-11NUK", "LGG-11DXW", "LGG-17WES")
+#' The example dataframe has one experimental control and two experimental conditions, GBM and LGG
+#' 
+#' The metadata table produced from this function for the example would be as below:
+#' example_md <- data.frame(id = c("GTEX-WZTO", "GTEX-PVOW", "TCGA-13NYS", "TCGA-11NUK", "LGG-11DXW", "LGG-17WES"),
+#'                           condition = c("Control", "Control", "GBM", "GBM", "LGG", "LGG"))
+#' 
+#' To produce the file, you are required to provide unique identifier for each of your experimental condition.
+#' Referring to the example, the unique identifier for the control samples would be 'GTEX'.
+#' Similarly, the unique identifier for the GBM samples would be 'TCGA'.
+#' Lastly, the unique identifier for the LGG sample would be 'LGG'.
+tidyddsmd <- function(exprdf){
+  message("This function creates a metadata table required for the differential expression analysis")
+  Sys.sleep(0.5)
+  message("If a metadata is already present with the experimental conditions, feel free to skip this function \n")
+  Sys.sleep(0.5)
+  cat("This function runs on the basis of common identifiers that R can search for for each experimental condition\n")
+  Sys.sleep(0.5)
+  cat("\nFor example the dataframe below contains 2 experimental conditions and one control: \n")
+  
+  
+  colnames(example_df)[2:ncol(example_df)] <- c("GTEX-WZTO-2926-SM", "GTEX-PVOW-2526-SM", "TCGA-13NYS-3126-SM", "TCGA-11NUK-2926-SM", "lgg-11DXW-1126-SM")
+  print(example_df)
+  Sys.sleep(0.5)
+  message("The example dataframe has one experimental control and two experimental conditions, GBM and LGG")
+  Sys.sleep(0.5)
+  cat("\nThe metadata table produced from this function for the example would be as below:\n")
+  
+  print(example_df2)
+  Sys.sleep(0.5)
+  cat("\nTo produce the file, you are required to provide unique identifier for each of your experimental condition\n")
+  cat("Referring to the example, the unique identifier for the control samples would be 'GTEX'\n")
+  cat("Similarly, the unique identifier for the GBM samples would be 'TCGA'\n")
+  cat("Lastly, the unique identifier for the LGG sample would be 'lgg'\n")
+  message("Please make sure the column names of your samples in the count data has unique identifiers between different experimental conditions")
+  
+  proc <- readline("Hopefully all is clear, if so, do you want to proceed? (yes/no): ")
+  
+  if (tolower(proc) == "yes" || tolower(proc) == "y"){
+    expr[,1] <- gsub("\\.\\d+$", "", expr[[1]])
+    md = colnames(expr)[2:ncol(expr)]
+    md %<>% as.data.frame()
+    colnames(md) <- "id"
+    
+    n_groups <- as.numeric(readline(prompt = "Please enter the number of experimental conditions (excluding control): "))
+    patterns <- vector(mode = "character", length = n_groups)
+    groups <- vector(mode = "character", length = n_groups)
+    ctrls <- vector(mode = "character", length = n_groups)
+    
+    for (i in 1:n_groups) {
+      patterns[i] <- readline(prompt = paste("Please enter the unique identifier for experimental condition", i, ": "))
+      groups[i] <- readline(prompt = paste("Please enter your desired name for experimental condition", i, ": "))
+    }
+    
+    ctrls <- readline(prompt = paste("Please enter the name of your control: "))
+    
+    md %<>% mutate(condition = as.factor(
+      case_when(
+        grepl(patterns[1], id) ~ groups[1],
+        TRUE ~ ctrls
+      )
+    ))
+    
+    for (i in 2:n_groups) {
+      md %<>% mutate(condition = as.factor(
+        case_when(
+          grepl(patterns[i], id) ~ groups[i],
+          TRUE ~ condition
+        )
+      ))
+    }
+    print("Done :>")
+    return(md)
+  }
+  
+  if(tolower(proc) == "no" || tolower(proc) == "n"){
+    message("Please provide the dataframe with unique patterns for each experimental condition :)")
+    cat("Alternatively, you can provide your own metadata file as the example above: \n")
+  }
 }
