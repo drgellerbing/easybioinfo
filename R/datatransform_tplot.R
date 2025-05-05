@@ -26,6 +26,7 @@
 #' library(easybioinfo)
 #' dds <- easybioinfo::rundeseq(expressiondf, md)
 #' datatransform(dds)
+#' @export
 
 datatransform <- function(dds){
   cs_dds <- class(dds) == "DESeqDataSet"
@@ -117,6 +118,7 @@ datatransform <- function(dds){
 #' tdds <- easybioinfo::datatransform(dds)
 #' 
 #' pcaplot(dds)
+#' @export
 
 pcaplot <- function(tdds){
   t <- readline(prompt = "Please provide the title of the plot: ")
@@ -196,6 +198,7 @@ distheatmapplot <- function(tdds){
 #' tdds <- easybioinfo::datatransform(dds)
 #' 
 #' countheatmapplot(dds)
+#' @export
 
 countheatmapplot <- function(tdds){
   message("The heatmap will be saved as countheatmap.png in your working directory :>")

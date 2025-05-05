@@ -15,7 +15,7 @@
 #' kmdf <- tidykmdata(df, md)
 #' unidf <- uniKM(kmdf)
 #' cox <- multicox(kmdf)
-#' 
+#' @export
 
 multicox = function(kmdf){
   cat("Executing Multivariate Cox Analysis ... \n")
@@ -300,6 +300,7 @@ multicox = function(kmdf){
 #' unidf <- uniKM(kmdf)
 #' cox <- multicox(kmdf)
 #' plotforest(cox)
+#' @export
 
 plotforest = function(cox){
   if(length(cox) == 4){

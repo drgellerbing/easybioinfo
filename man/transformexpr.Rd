@@ -4,10 +4,10 @@
 \alias{transformexpr}
 \title{Transforms RNA-Seq Expression into Raw Counts}
 \usage{
-transformexpr(expr)
+transformexpr(exprdf)
 }
 \arguments{
-\item{expr}{An expression dataframe containing RNA-Seq log2 transformed counts}
+\item{exprdf}{An expression dataframe containing RNA-Seq log2 transformed counts}
 }
 \value{
 A dataframe with transformed raw counts for downstream DESeq2 differential expression analysis.
@@ -18,5 +18,4 @@ This function will also account for any psudocounts based on your input prompt.
 }
 \examples{
 df <- transformexpr(expr)
-
 }

@@ -32,5 +32,4 @@ maplot(result)
 
 lfc <- shrinklfc(dds)
 maplot(lfc)
-
 }

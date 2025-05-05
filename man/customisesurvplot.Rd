@@ -22,5 +22,4 @@ md <- easybioinfo::kmclinical
 kmdf <- tidykmdata(df, md)
 unidf <- uniKM(kmdf)
 customisesurvivalplot(unidf)
-
 }

@@ -14,6 +14,7 @@
 #' library(easybioinfo)
 #' dds <- easybioinfo::rundeseq(expressiondf, md)
 #' getresults(dds)
+#' @export
 
 getresults <- function(deseq_dds){
   cs_dds <- class(deseq_dds) == "DESeqDataSet"

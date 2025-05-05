@@ -14,6 +14,7 @@
 #' md <- easybioinfo::kmclinical
 #' 
 #' kmdf <- tidykmdata(df, md)
+#' @export
 
 tidykmdata = function(expressiondataframe, clinicaldataframe){
   cat("Combining expression data with clinical data ....\n")
@@ -388,7 +389,7 @@ tidykmdata = function(expressiondataframe, clinicaldataframe){
 #' @returns A dataframe with transformed raw counts for downstream DESeq2 differential expression analysis.
 #' @examples
 #' df <- transformexpr(expr)
-#' 
+#' @export
 
 transformexpr <- function(exprdf){
   print("Transformation Ongoing...")
@@ -437,72 +438,51 @@ transformexpr <- function(exprdf){
 #' Referring to the example, the unique identifier for the control samples would be 'GTEX'.
 #' Similarly, the unique identifier for the GBM samples would be 'TCGA'.
 #' Lastly, the unique identifier for the LGG sample would be 'LGG'.
+#' @export
+
 tidyddsmd <- function(exprdf){
   message("This function creates a metadata table required for the differential expression analysis")
-  Sys.sleep(0.5)
+  Sys.sleep(0.1)
   message("If a metadata is already present with the experimental conditions, feel free to skip this function \n")
-  Sys.sleep(0.5)
+  Sys.sleep(0.1)
   cat("This function runs on the basis of common identifiers that R can search for for each experimental condition\n")
-  Sys.sleep(0.5)
-  cat("\nFor example the dataframe below contains 2 experimental conditions and one control: \n")
-  
-  
-  colnames(example_df)[2:ncol(example_df)] <- c("GTEX-WZTO-2926-SM", "GTEX-PVOW-2526-SM", "TCGA-13NYS-3126-SM", "TCGA-11NUK-2926-SM", "lgg-11DXW-1126-SM")
-  print(example_df)
-  Sys.sleep(0.5)
-  message("The example dataframe has one experimental control and two experimental conditions, GBM and LGG")
-  Sys.sleep(0.5)
-  cat("\nThe metadata table produced from this function for the example would be as below:\n")
-  
-  print(example_df2)
-  Sys.sleep(0.5)
-  cat("\nTo produce the file, you are required to provide unique identifier for each of your experimental condition\n")
-  cat("Referring to the example, the unique identifier for the control samples would be 'GTEX'\n")
-  cat("Similarly, the unique identifier for the GBM samples would be 'TCGA'\n")
-  cat("Lastly, the unique identifier for the LGG sample would be 'lgg'\n")
+  Sys.sleep(0.1)
+
   message("Please make sure the column names of your samples in the count data has unique identifiers between different experimental conditions")
   
-  proc <- readline("Hopefully all is clear, if so, do you want to proceed? (yes/no): ")
+  exprdf[,1] <- gsub("\\.\\d+$", "", exprdf[[1]])
+  md = colnames(exprdf)[2:ncol(exprdf)]
+  md %<>% as.data.frame()
+  colnames(md) <- "id"
   
-  if (tolower(proc) == "yes" || tolower(proc) == "y"){
-    expr[,1] <- gsub("\\.\\d+$", "", expr[[1]])
-    md = colnames(expr)[2:ncol(expr)]
-    md %<>% as.data.frame()
-    colnames(md) <- "id"
-    
-    n_groups <- as.numeric(readline(prompt = "Please enter the number of experimental conditions (excluding control): "))
-    patterns <- vector(mode = "character", length = n_groups)
-    groups <- vector(mode = "character", length = n_groups)
-    ctrls <- vector(mode = "character", length = n_groups)
-    
-    for (i in 1:n_groups) {
-      patterns[i] <- readline(prompt = paste("Please enter the unique identifier for experimental condition", i, ": "))
-      groups[i] <- readline(prompt = paste("Please enter your desired name for experimental condition", i, ": "))
-    }
-    
-    ctrls <- readline(prompt = paste("Please enter the name of your control: "))
-    
-    md %<>% mutate(condition = as.factor(
+  n_groups <- as.numeric(readline(prompt = "Please enter the number of experimental conditions (excluding control): "))
+  patterns <- vector(mode = "character", length = n_groups)
+  groups <- vector(mode = "character", length = n_groups)
+  ctrls <- vector(mode = "character", length = n_groups)
+  
+  for (i in 1:n_groups) {
+    patterns[i] <- readline(prompt = paste("Please enter the unique identifier for experimental condition", i, ": "))
+    groups[i] <- readline(prompt = paste("Please enter your desired name for experimental condition", i, ": "))
+  }
+  
+  ctrls <- readline(prompt = paste("Please enter the name of your control: "))
+  
+  md %<>% dplyr::mutate(condition = as.factor(
+    case_when(
+      grepl(patterns[1], id) ~ groups[1],
+      TRUE ~ ctrls
+    )
+  ))
+  
+  for (i in 2:n_groups) {
+    md %<>% dplyr::mutate(condition = as.factor(
       case_when(
-        grepl(patterns[1], id) ~ groups[1],
-        TRUE ~ ctrls
+        grepl(patterns[i], id) ~ groups[i],
+        TRUE ~ condition
       )
     ))
-    
-    for (i in 2:n_groups) {
-      md %<>% mutate(condition = as.factor(
-        case_when(
-          grepl(patterns[i], id) ~ groups[i],
-          TRUE ~ condition
-        )
-      ))
-    }
-    print("Done :>")
-    return(md)
   }
   
-  if(tolower(proc) == "no" || tolower(proc) == "n"){
-    message("Please provide the dataframe with unique patterns for each experimental condition :)")
-    cat("Alternatively, you can provide your own metadata file as the example above: \n")
-  }
+  print("Done :>")
+  return(md)
 }
