@@ -10,6 +10,7 @@
 #' df <- easybioinfo::deseqexpr
 #' md <- easybioinfo::deseqmd
 #' dds <- rundeseq(df, md)
+#' @export
 
 rundeseq <- function(expression, md){
   expression %<>% as.data.frame()

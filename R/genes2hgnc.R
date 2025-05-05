@@ -9,6 +9,7 @@
 #' @examples
 #' df <- easybioinfo::kmexpr
 #' df <- genes2hgnc(df) 
+#' @export
 
 genes2hgnc <- function(expr, srcType = "ensembl_gene_id" )
 {
@@ -112,6 +113,7 @@ genes2hgnc <- function(expr, srcType = "ensembl_gene_id" )
 #' library(easybioinfo)
 #' dds <- easybioinfo::rundeseq(expressiondf, md)
 #' ddsgenestohgnc(dds)
+#' @export
 
 ddsgenestohgnc <- function(dds, srcType = "ensembl_gene_id"){
   cs_dds <- class(dds) == "DESeqDataSet"

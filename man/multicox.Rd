@@ -25,5 +25,4 @@ md <- easybioinfo::kmclinical
 kmdf <- tidykmdata(df, md)
 unidf <- uniKM(kmdf)
 cox <- multicox(kmdf)
-
 }

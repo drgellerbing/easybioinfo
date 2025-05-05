@@ -17,6 +17,7 @@
 #' md <- easybioinfo::kmclinical
 #' kmdf <- tidykmdata(df, md)
 #' unidf <- uniKM(kmdf)
+#' @export
 
 ##uniKM Function
 uniKM = function(kmdf){
@@ -412,7 +413,7 @@ uniKM = function(kmdf){
 #' kmdf <- tidykmdata(df, md)
 #' unidf <- uniKM(kmdf)
 #' customisesurvivalplot(unidf)
-#' 
+#' @export
 
 ##Customisable Survival Curve Function
 customisesurvplot = function(unidf){

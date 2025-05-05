@@ -17,7 +17,7 @@
 #' library(easybioinfo)
 #' dds <- easybioinfo::rundeseq(expression, md)
 #' lfc <- shrinklfc(dds)
-#' 
+#' @export
 
 shrinklfc <- function(dds){
   cs_dds <- class(dds) == "DESeqDataSet"

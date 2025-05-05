@@ -18,6 +18,7 @@
 #' library(easybioinfo)
 #' dds <- easybioinfo::rundeseq(expression, md)
 #' countplot(dds)
+#' @export
 
 countplot <- function(dds){
   cs_dds <- class(dds) == "DESeqDataSet"

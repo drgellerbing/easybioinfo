@@ -29,5 +29,4 @@ dds <- DESeq2::DESeq(exampledeseq)
 library(easybioinfo)
 dds <- easybioinfo::rundeseq(expression, md)
 lfc <- shrinklfc(dds)
-
 }

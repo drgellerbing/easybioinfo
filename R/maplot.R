@@ -21,7 +21,8 @@
 #' 
 #' lfc <- shrinklfc(dds)
 #' maplot(lfc)
-#' 
+#' @export
+
 maplot <- function(result){
   if(!inherits(result, c("DESeqResults", "list"))){
     message("Please provide the DESeqResults from the getresults/shrinklfc function")

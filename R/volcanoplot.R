@@ -26,6 +26,7 @@
 #' 
 #' lfc <- shrinklfc(dds)
 #' volcanoplot(lfc)
+#' @export
 
 volcanoplot <- function(result){
   message("Volcano Plots will be saved in your working directory :>")
